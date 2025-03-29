@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../home/activity_screen.dart';
 
 class RegistrationScreen extends StatefulWidget {
   @override
@@ -29,6 +30,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
+            // Поля формы остаются без изменений
             TextField(
               cursorColor: Color(0xFF007AFF),
               decoration: InputDecoration(
@@ -151,7 +153,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             SizedBox(height: 40),
             Center(
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  // Переход на экран активностей
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => ActivityScreen()),
+                  );
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFF007AFF),
                   foregroundColor: Colors.white,

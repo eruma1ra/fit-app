@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../home/activity_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   @override
@@ -54,7 +55,13 @@ class LoginScreen extends StatelessWidget {
             SizedBox(height: 40),
             Center(
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  // Переход на экран активностей
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => ActivityScreen()),
+                  );
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFF007AFF),
                   foregroundColor: Colors.white,

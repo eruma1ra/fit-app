@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/home/hello_screen.dart';
+import 'screens/home/activity_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/registration_screen.dart';
 
@@ -17,6 +18,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/registration': (context) => RegistrationScreen(),
         '/login': (context) => LoginScreen(),
+        '/activity': (context) => const ActivityScreen(),
       },
     );
   }
