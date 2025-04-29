@@ -240,19 +240,9 @@ class ActivityScreen extends StatefulWidget {
 class _ActivityScreenState extends State<ActivityScreen> {
   int _selectedIndex = 0;
   bool _showActivities = false;
+  int _selectedTab = 0; // 0 - Мои активности, 1 - Пользователей
 
-  final List<Map<String, dynamic>> _activities = [
-    {
-      'distance': '14.32 км',
-      'time': '1 ч 42 мин',
-      'type': 'Велосипед',
-      'ago': '14 часов назад',
-      'date': 'Сегодня',
-      'startTime': '14:49',
-      'endTime': '16:31',
-      'isHeader': true,
-      'comment': '',
-    },
+  final List<Map<String, dynamic>> _myActivities = [
     {
       'distance': '14.32 км',
       'time': '1 ч 42 мин',
@@ -272,7 +262,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
       'date': 'Вчера',
       'startTime': '09:15',
       'endTime': '10:27',
-      'isHeader': true,
+      'isHeader': false,
       'comment': '',
     },
     {
@@ -286,6 +276,9 @@ class _ActivityScreenState extends State<ActivityScreen> {
       'isHeader': false,
       'comment': '',
     },
+  ];
+
+  final List<Map<String, dynamic>> _usersActivities = [
     {
       'distance': '12.78 км',
       'time': '2 часа 5 минут',
@@ -294,8 +287,9 @@ class _ActivityScreenState extends State<ActivityScreen> {
       'date': '2 дня назад',
       'startTime': '15:20',
       'endTime': '17:25',
-      'isHeader': true,
+      'isHeader': false,
       'comment': '',
+      'user': 'Иван Иванов',
     },
     {
       'distance': '7.89 км',
@@ -307,11 +301,45 @@ class _ActivityScreenState extends State<ActivityScreen> {
       'endTime': '09:00',
       'isHeader': false,
       'comment': '',
+      'user': 'Мария Петрова',
+    },
+    {
+      'distance': '10.5 км',
+      'time': '1 час 30 минут',
+      'type': 'Велосипед',
+      'ago': '3 дня назад',
+      'date': '3 дня назад',
+      'startTime': '12:00',
+      'endTime': '13:30',
+      'isHeader': false,
+      'comment': '',
+      'user': 'Алексей Смирнов',
     },
   ];
 
+  // Группируем активности по датам
+  List<Map<String, dynamic>> _groupActivities(
+    List<Map<String, dynamic>> activities,
+  ) {
+    final List<Map<String, dynamic>> grouped = [];
+    String? currentDate;
+
+    for (final activity in activities) {
+      if (activity['date'] != currentDate) {
+        grouped.add({'date': activity['date'], 'isHeader': true});
+        currentDate = activity['date'];
+      }
+      grouped.add(activity);
+    }
+
+    return grouped;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final groupedMyActivities = _groupActivities(_myActivities);
+    final groupedUsersActivities = _groupActivities(_usersActivities);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF1F2F6),
       appBar: AppBar(
@@ -328,7 +356,85 @@ class _ActivityScreenState extends State<ActivityScreen> {
           child: Divider(height: 1, color: Color(0xFFE9E9EB)),
         ),
       ),
-      body: _showActivities ? _buildActivitiesList() : _buildInitialContent(),
+      body:
+          _showActivities
+              ? Column(
+                children: [
+                  // Табы для переключения между "Мои" и "Пользователей"
+                  Container(
+                    color: Colors.white,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () {
+                              setState(() {
+                                _selectedTab = 0;
+                              });
+                            },
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              backgroundColor:
+                                  _selectedTab == 0
+                                      ? const Color(0xFF007AFF)
+                                      : Colors.white,
+                              shape: const RoundedRectangleBorder(),
+                            ),
+                            child: Text(
+                              'Моя',
+                              style: TextStyle(
+                                color:
+                                    _selectedTab == 0
+                                        ? Colors.white
+                                        : const Color(0xFF007AFF),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () {
+                              setState(() {
+                                _selectedTab = 1;
+                              });
+                            },
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              backgroundColor:
+                                  _selectedTab == 1
+                                      ? const Color(0xFF007AFF)
+                                      : Colors.white,
+                              shape: const RoundedRectangleBorder(),
+                            ),
+                            child: Text(
+                              'Пользователей',
+                              style: TextStyle(
+                                color:
+                                    _selectedTab == 1
+                                        ? Colors.white
+                                        : const Color(0xFF007AFF),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Divider(height: 1, color: Color(0xFFE9E9EB)),
+                  Expanded(
+                    child: _buildActivitiesList(
+                      _selectedTab == 0
+                          ? groupedMyActivities
+                          : groupedUsersActivities,
+                    ),
+                  ),
+                ],
+              )
+              : _buildInitialContent(),
       bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
@@ -384,88 +490,84 @@ class _ActivityScreenState extends State<ActivityScreen> {
     );
   }
 
-  Widget _buildActivitiesList() {
-    return SingleChildScrollView(
+  Widget _buildActivitiesList(List<Map<String, dynamic>> activities) {
+    return ListView.builder(
       padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          for (int i = 0; i < _activities.length; i++)
-            if (_activities[i]['isHeader'])
-              Padding(
-                padding: const EdgeInsets.only(top: 16, bottom: 8),
-                child: Text(
-                  _activities[i]['date'],
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+      itemCount: activities.length,
+      itemBuilder: (context, index) {
+        final item = activities[index];
+
+        if (item['isHeader'] == true) {
+          // Заголовок с датой
+          return Padding(
+            padding: const EdgeInsets.only(top: 16, bottom: 8),
+            child: Text(
+              item['date'],
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          );
+        } else {
+          // Карточка активности
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ActivityDetailsScreen(activity: item),
                 ),
-              )
-            else
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder:
-                          (context) =>
-                              ActivityDetailsScreen(activity: _activities[i]),
-                    ),
-                  );
-                },
-                child: Container(
-                  width: double.infinity,
-                  margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _activities[i]['distance'],
+              );
+            },
+            child: Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (_selectedTab == 1) // Для активностей пользователей
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        item['user'],
                         style: const TextStyle(
-                          fontSize: 18,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _activities[i]['time'],
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
+                    ),
+                  Text(
+                    item['distance'],
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    item['time'],
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            children: [
-                              Container(
-                                width: 12,
-                                height: 12,
-                                decoration: const BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Color(0xFF007AFF),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                _activities[i]['type'],
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
+                          Container(
+                            width: 12,
+                            height: 12,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Color(0xFF007AFF),
+                            ),
                           ),
+                          const SizedBox(width: 8),
                           Text(
-                            _activities[i]['ago'],
+                            item['type'],
                             style: const TextStyle(
                               fontSize: 14,
                               color: Colors.grey,
@@ -473,12 +575,21 @@ class _ActivityScreenState extends State<ActivityScreen> {
                           ),
                         ],
                       ),
+                      Text(
+                        item['ago'],
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey,
+                        ),
+                      ),
                     ],
                   ),
-                ),
+                ],
               ),
-        ],
-      ),
+            ),
+          );
+        }
+      },
     );
   }
 
