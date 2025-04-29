@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'profile.dart'; // Убедитесь, что путь к файлу profile.dart правильный
 
 void main() {
   runApp(const MyApp());
@@ -10,11 +11,19 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Трекер активностей',
+      title: 'Activity Tracker',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          centerTitle: true,
           iconTheme: IconThemeData(color: Color(0xFF007AFF)),
+          titleTextStyle: TextStyle(
+            color: Colors.black,
+            fontSize: 20,
+            fontWeight: FontWeight.w500,
+          ),
         ),
         splashFactory: NoSplash.splashFactory,
         highlightColor: Colors.transparent,
@@ -163,12 +172,28 @@ class _ActivityDetailsScreenState extends State<ActivityDetailsScreen> {
           highlightColor: Colors.transparent,
         ),
         child: BottomNavigationBar(
-          items: [_buildNavItem(0, 'Активности'), _buildNavItem(1, 'Профиль')],
+          items: [
+            BottomNavigationBarItem(
+              icon: _buildNavIcon(0, 'Активности'),
+              label: '',
+            ),
+            BottomNavigationBarItem(
+              icon: _buildNavIcon(1, 'Профиль'),
+              label: '',
+            ),
+          ],
           currentIndex: _selectedIndex,
           onTap: (index) {
-            setState(() {
-              _selectedIndex = index;
-            });
+            if (index == 1) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ProfileScreen()),
+              );
+            } else {
+              setState(() {
+                _selectedIndex = index;
+              });
+            }
           },
           backgroundColor: Colors.white,
           selectedItemColor: Colors.transparent,
@@ -182,50 +207,33 @@ class _ActivityDetailsScreenState extends State<ActivityDetailsScreen> {
     );
   }
 
-  BottomNavigationBarItem _buildNavItem(int index, String title) {
-    return BottomNavigationBarItem(
-      icon: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
-          onTap: () {
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color:
-                        _selectedIndex == index
-                            ? const Color(0xFF007AFF)
-                            : const Color(0xFFE9E9EB),
-                    width: 2,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                title,
-                style: TextStyle(
-                  color:
-                      _selectedIndex == index
-                          ? const Color(0xFF007AFF)
-                          : Colors.grey,
-                ),
-              ),
-            ],
+  Widget _buildNavIcon(int index, String title) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          width: 24,
+          height: 24,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color:
+                  _selectedIndex == index
+                      ? const Color(0xFF007AFF)
+                      : const Color(0xFFE9E9EB),
+              width: 2,
+            ),
           ),
         ),
-      ),
-      label: '',
+        const SizedBox(height: 4),
+        Text(
+          title,
+          style: TextStyle(
+            color:
+                _selectedIndex == index ? const Color(0xFF007AFF) : Colors.grey,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -240,7 +248,7 @@ class ActivityScreen extends StatefulWidget {
 class _ActivityScreenState extends State<ActivityScreen> {
   int _selectedIndex = 0;
   bool _showActivities = false;
-  int _selectedTab = 0; // 0 - Мои активности, 1 - Пользователей
+  int _selectedTab = 0;
 
   final List<Map<String, dynamic>> _myActivities = [
     {
@@ -292,18 +300,6 @@ class _ActivityScreenState extends State<ActivityScreen> {
       'user': 'Иван Иванов',
     },
     {
-      'distance': '7.89 км',
-      'time': '1 час 15 минут',
-      'type': 'Бег',
-      'ago': '2 дня назад',
-      'date': '2 дня назад',
-      'startTime': '07:45',
-      'endTime': '09:00',
-      'isHeader': false,
-      'comment': '',
-      'user': 'Мария Петрова',
-    },
-    {
       'distance': '10.5 км',
       'time': '1 час 30 минут',
       'type': 'Велосипед',
@@ -317,7 +313,6 @@ class _ActivityScreenState extends State<ActivityScreen> {
     },
   ];
 
-  // Группируем активности по датам
   List<Map<String, dynamic>> _groupActivities(
     List<Map<String, dynamic>> activities,
   ) {
@@ -341,152 +336,106 @@ class _ActivityScreenState extends State<ActivityScreen> {
     final groupedUsersActivities = _groupActivities(_usersActivities);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F2F6),
+      backgroundColor: const Color(0xFFF2F2F7),
       appBar: AppBar(
-        title: const Text(
-          'Активности',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
-        ),
-        centerTitle: true,
-        automaticallyImplyLeading: false,
-        backgroundColor: Colors.white,
-        elevation: 0,
-        bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(1.0),
-          child: Divider(height: 1, color: Color(0xFFE9E9EB)),
-        ),
-      ),
-      body:
-          _showActivities
-              ? Column(
-                children: [
-                  // Табы для переключения между "Мои" и "Пользователей"
-                  Container(
-                    color: Colors.white,
+        title: _showActivities ? null : const Text('Активности'),
+        bottom:
+            _showActivities
+                ? PreferredSize(
+                  preferredSize: const Size.fromHeight(48),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Expanded(
-                          child: TextButton(
-                            onPressed: () {
-                              setState(() {
-                                _selectedTab = 0;
-                              });
-                            },
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              backgroundColor:
-                                  _selectedTab == 0
-                                      ? const Color(0xFF007AFF)
-                                      : Colors.white,
-                              shape: const RoundedRectangleBorder(),
-                            ),
-                            child: Text(
-                              'Моя',
-                              style: TextStyle(
-                                color:
-                                    _selectedTab == 0
-                                        ? Colors.white
-                                        : const Color(0xFF007AFF),
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: TextButton(
-                            onPressed: () {
-                              setState(() {
-                                _selectedTab = 1;
-                              });
-                            },
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              backgroundColor:
-                                  _selectedTab == 1
-                                      ? const Color(0xFF007AFF)
-                                      : Colors.white,
-                              shape: const RoundedRectangleBorder(),
-                            ),
-                            child: Text(
-                              'Пользователей',
-                              style: TextStyle(
-                                color:
-                                    _selectedTab == 1
-                                        ? Colors.white
-                                        : const Color(0xFF007AFF),
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ),
+                        _buildTabButton(0, 'Моя'),
+                        const SizedBox(width: 24),
+                        _buildTabButton(1, 'Пользователей'),
                       ],
                     ),
                   ),
-                  const Divider(height: 1, color: Color(0xFFE9E9EB)),
-                  Expanded(
-                    child: _buildActivitiesList(
-                      _selectedTab == 0
-                          ? groupedMyActivities
-                          : groupedUsersActivities,
-                    ),
-                  ),
-                ],
+                )
+                : null,
+      ),
+      body: Stack(
+        children: [
+          _showActivities
+              ? _buildActivitiesList(
+                _selectedTab == 0
+                    ? groupedMyActivities
+                    : groupedUsersActivities,
               )
               : _buildInitialContent(),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: _buildStartButton(),
+            ),
+          ),
+        ],
+      ),
       bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
 
+  Widget _buildTabButton(int index, String text) {
+    return TextButton(
+      onPressed: () => setState(() => _selectedTab = index),
+      style: TextButton.styleFrom(
+        splashFactory: NoSplash.splashFactory,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        minimumSize: Size.zero,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w500,
+              color:
+                  _selectedTab == index ? Colors.black : Colors.grey.shade600,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Container(
+            height: 2,
+            width: text.length * 10.0,
+            decoration: BoxDecoration(
+              color:
+                  _selectedTab == index
+                      ? const Color(0xFF007AFF)
+                      : Colors.transparent,
+              borderRadius: BorderRadius.circular(1),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildInitialContent() {
-    return Column(
-      children: [
-        const Expanded(
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Время потренить',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 16),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 40),
-                  child: Text(
-                    'Нажимай на кнопку ниже и начинаем трекать активность',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 15),
-                  ),
-                ),
-              ],
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Время потренить',
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 16),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 40),
+            child: Text(
+              'Нажимай на кнопку ниже и начинаем трекать активность',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 15),
             ),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(bottom: 40),
-          child: SizedBox(
-            width: MediaQuery.of(context).size.width * 0.8,
-            child: ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  _showActivities = true;
-                });
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF007AFF),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              child: const Text('Старт', style: TextStyle(fontSize: 17)),
-            ),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -498,7 +447,6 @@ class _ActivityScreenState extends State<ActivityScreen> {
         final item = activities[index];
 
         if (item['isHeader'] == true) {
-          // Заголовок с датой
           return Padding(
             padding: const EdgeInsets.only(top: 16, bottom: 8),
             child: Text(
@@ -507,7 +455,6 @@ class _ActivityScreenState extends State<ActivityScreen> {
             ),
           );
         } else {
-          // Карточка активности
           return GestureDetector(
             onTap: () {
               Navigator.push(
@@ -528,7 +475,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (_selectedTab == 1) // Для активностей пользователей
+                  if (_selectedTab == 1)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 8),
                       child: Text(
@@ -604,12 +551,28 @@ class _ActivityScreenState extends State<ActivityScreen> {
           highlightColor: Colors.transparent,
         ),
         child: BottomNavigationBar(
-          items: [_buildNavItem(0, 'Активности'), _buildNavItem(1, 'Профиль')],
+          items: [
+            BottomNavigationBarItem(
+              icon: _buildNavIcon(0, 'Активности'),
+              label: '',
+            ),
+            BottomNavigationBarItem(
+              icon: _buildNavIcon(1, 'Профиль'),
+              label: '',
+            ),
+          ],
           currentIndex: _selectedIndex,
           onTap: (index) {
-            setState(() {
-              _selectedIndex = index;
-            });
+            if (index == 1) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ProfileScreen()),
+              );
+            } else {
+              setState(() {
+                _selectedIndex = index;
+              });
+            }
           },
           backgroundColor: Colors.white,
           selectedItemColor: Colors.transparent,
@@ -623,50 +586,55 @@ class _ActivityScreenState extends State<ActivityScreen> {
     );
   }
 
-  BottomNavigationBarItem _buildNavItem(int index, String title) {
-    return BottomNavigationBarItem(
-      icon: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
-          onTap: () {
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color:
-                        _selectedIndex == index
-                            ? const Color(0xFF007AFF)
-                            : const Color(0xFFE9E9EB),
-                    width: 2,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                title,
-                style: TextStyle(
-                  color:
-                      _selectedIndex == index
-                          ? const Color(0xFF007AFF)
-                          : Colors.grey,
-                ),
-              ),
-            ],
+  Widget _buildNavIcon(int index, String title) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          width: 24,
+          height: 24,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color:
+                  _selectedIndex == index
+                      ? const Color(0xFF007AFF)
+                      : const Color(0xFFE9E9EB),
+              width: 2,
+            ),
           ),
         ),
+        const SizedBox(height: 4),
+        Text(
+          title,
+          style: TextStyle(
+            color:
+                _selectedIndex == index ? const Color(0xFF007AFF) : Colors.grey,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStartButton() {
+    return SizedBox(
+      width: MediaQuery.of(context).size.width * 0.8,
+      child: ElevatedButton(
+        onPressed: () {
+          setState(() {
+            _showActivities = true;
+          });
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF007AFF),
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+        child: const Text('Старт', style: TextStyle(fontSize: 17)),
       ),
-      label: '',
     );
   }
 }
