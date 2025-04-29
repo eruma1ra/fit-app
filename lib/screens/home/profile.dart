@@ -22,6 +22,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFE9E9EB), // Set the background color here
       appBar:
           _showChangePassword
               ? _buildChangePasswordAppBar()
@@ -57,7 +58,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   PreferredSizeWidget _buildChangePasswordAppBar() {
     return AppBar(
       leading: IconButton(
-        icon: Icon(Icons.arrow_back),
+        icon: Icon(Icons.arrow_back_ios),
         onPressed: () {
           setState(() {
             _showChangePassword = false;
