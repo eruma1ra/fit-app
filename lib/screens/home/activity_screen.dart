@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'profile.dart'; // Убедитесь, что путь к файлу profile.dart правильный
+import 'profile.dart';
+import 'new_activity.dart';
 
 void main() {
   runApp(const MyApp());
@@ -249,6 +250,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
   int _selectedIndex = 0;
   bool _showActivities = false;
   int _selectedTab = 0;
+  int _startButtonPressCount = 0; // Переменная для отслеживания нажатий
 
   final List<Map<String, dynamic>> _myActivities = [
     {
@@ -622,7 +624,15 @@ class _ActivityScreenState extends State<ActivityScreen> {
       child: ElevatedButton(
         onPressed: () {
           setState(() {
-            _showActivities = true;
+            if (_startButtonPressCount == 0) {
+              _showActivities = true;
+            } else {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => NewActivityScreen()),
+              );
+            }
+            _startButtonPressCount++;
           });
         },
         style: ElevatedButton.styleFrom(
