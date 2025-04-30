@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'profile.dart';
 import 'new_activity.dart';
-import '../../database/activity_details_screen.dart'; // Добавьте этот импорт
+import '../../database/activity_details_screen.dart';
 import '../../database/database_helper.dart';
-import 'dart:convert'; // Для работы с JSON
+import 'dart:convert';
 
 class ActivityScreen extends StatefulWidget {
   const ActivityScreen({super.key});
@@ -19,7 +19,9 @@ class _ActivityScreenState extends State<ActivityScreen> {
   int _startButtonPressCount = 0;
 
   final DatabaseHelper _databaseHelper = DatabaseHelper();
-  List<Map<String, dynamic>> _myActivities = [];
+  final ValueNotifier<List<Map<String, dynamic>>> _myActivities = ValueNotifier(
+    [],
+  );
 
   @override
   void initState() {
@@ -29,15 +31,15 @@ class _ActivityScreenState extends State<ActivityScreen> {
 
   Future<void> _loadActivities() async {
     final activities = await _databaseHelper.getActivities();
-    setState(() {
-      _myActivities = activities;
-    });
+    _myActivities.value = activities;
   }
 
   void _handleActivityUpdated(Map<String, dynamic> updatedActivity) {
-    setState(() {
-      _myActivities =
-          _myActivities
+    if (updatedActivity.isEmpty) {
+      _loadActivities();
+    } else {
+      _myActivities.value =
+          _myActivities.value
               .map(
                 (activity) =>
                     activity['id'] == updatedActivity['id']
@@ -45,7 +47,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
                         : activity,
               )
               .toList();
-    });
+    }
   }
 
   List<Map<String, dynamic>> _groupActivities(
@@ -68,7 +70,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final groupedMyActivities = _groupActivities(_myActivities);
+    final groupedMyActivities = _groupActivities(_myActivities.value);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF2F2F7),
@@ -95,8 +97,13 @@ class _ActivityScreenState extends State<ActivityScreen> {
       body: Stack(
         children: [
           _showActivities
-              ? _buildActivitiesList(
-                _selectedTab == 0 ? groupedMyActivities : [],
+              ? ValueListenableBuilder(
+                valueListenable: _myActivities,
+                builder: (context, activities, _) {
+                  return _buildActivitiesList(
+                    _selectedTab == 0 ? _groupActivities(activities) : [],
+                  );
+                },
               )
               : _buildInitialContent(),
           Align(
@@ -356,7 +363,14 @@ class _ActivityScreenState extends State<ActivityScreen> {
             } else {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => NewActivityScreen()),
+                MaterialPageRoute(
+                  builder:
+                      (context) => NewActivityScreen(
+                        onActivityAdded: () {
+                          _loadActivities();
+                        },
+                      ),
+                ),
               );
             }
             _startButtonPressCount++;
