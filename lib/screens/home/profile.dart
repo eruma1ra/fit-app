@@ -22,7 +22,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFE9E9EB), // Set the background color here
+      backgroundColor: Color.fromARGB(
+        255,
+        243,
+        243,
+        243,
+      ), // Set the background color here
       appBar:
           _showChangePassword
               ? _buildChangePasswordAppBar()

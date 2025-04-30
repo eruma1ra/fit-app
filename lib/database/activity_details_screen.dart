@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import '../../database/database_helper.dart';
 
 class ActivityDetailsScreen extends StatefulWidget {
@@ -48,14 +49,12 @@ class _ActivityDetailsScreenState extends State<ActivityDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F2F6),
+      backgroundColor: const Color(0xFFF2F2F6),
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new),
-          color: const Color(0xFF007AFF),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
+        leading: CupertinoButton(
+          padding: EdgeInsets.zero,
+          child: Icon(CupertinoIcons.back, color: const Color(0xFF007AFF)),
+          onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
           _currentActivity['activity_type'] ?? 'Активность',
@@ -95,7 +94,7 @@ class _ActivityDetailsScreenState extends State<ActivityDetailsScreen> {
                   const SizedBox(height: 24),
                   _buildCommentField(),
                   const SizedBox(height: 20),
-                  _buildSubmitButton(), // Добавлена кнопка "Отправить"
+                  _buildSubmitButton(),
                 ],
               ),
             ),
@@ -127,20 +126,34 @@ class _ActivityDetailsScreenState extends State<ActivityDetailsScreen> {
   }
 
   Widget _buildTimeRange() {
+    final startDateTime = DateTime.parse(_currentActivity['start_time']);
+    final endDateTime = DateTime.parse(_currentActivity['end_time']);
+    final coordinates = _currentActivity['coordinates'] ?? [];
+
+    final startDate =
+        "${startDateTime.year}-${startDateTime.month.toString().padLeft(2, '0')}-${startDateTime.day.toString().padLeft(2, '0')}";
+    final startTime =
+        "${startDateTime.hour.toString().padLeft(2, '0')}:${startDateTime.minute.toString().padLeft(2, '0')}";
+    final endDate =
+        "${endDateTime.year}-${endDateTime.month.toString().padLeft(2, '0')}-${endDateTime.day.toString().padLeft(2, '0')}";
+    final endTime =
+        "${endDateTime.hour.toString().padLeft(2, '0')}:${endDateTime.minute.toString().padLeft(2, '0')}";
+
+    final startInfo =
+        "$startDate $startTime ${coordinates.isNotEmpty ? '${coordinates[0]['lat']},${coordinates[0]['lon']}' : ''}";
+    final endInfo =
+        "$endDate $endTime ${coordinates.isNotEmpty && coordinates.length > 1 ? '${coordinates[coordinates.length - 1]['lat']},${coordinates[coordinates.length - 1]['lon']}' : ''}";
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Временной промежуток',
-            style: TextStyle(fontSize: 14, color: Colors.grey),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Старт ${_currentActivity['start_time']} · Финиш ${_currentActivity['end_time']}',
-            style: const TextStyle(fontSize: 16),
-          ),
+          Text('Старт', style: TextStyle(fontSize: 14, color: Colors.grey)),
+          Text(startInfo, style: const TextStyle(fontSize: 16)),
+          const SizedBox(height: 8),
+          Text('Финиш', style: TextStyle(fontSize: 14, color: Colors.grey)),
+          Text(endInfo, style: const TextStyle(fontSize: 16)),
         ],
       ),
     );
@@ -205,9 +218,7 @@ class _ActivityDetailsScreenState extends State<ActivityDetailsScreen> {
           Navigator.of(context).pop();
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: Color(
-            0xFF007AFF,
-          ), // Используйте backgroundColor вместо primary
+          backgroundColor: const Color(0xFF007AFF),
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
@@ -251,13 +262,12 @@ class _ActivityDetailsScreenState extends State<ActivityDetailsScreen> {
     );
 
     if (confirmed == true && _currentActivity['id'] != null) {
-      print('Deleting activity with ID: ${_currentActivity['id']}');
       try {
         await _dbHelper.deleteActivity(_currentActivity['id']);
         if (widget.onActivityUpdated != null) {
-          widget.onActivityUpdated!(_currentActivity);
+          widget.onActivityUpdated!({});
         }
-        Navigator.of(context).pop(_currentActivity);
+        Navigator.of(context).pop();
       } catch (e) {
         print('Error deleting activity in UI: $e');
       }
