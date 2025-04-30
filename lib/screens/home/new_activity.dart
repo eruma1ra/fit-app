@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'dart:math';
+import 'dart:convert'; // Импортируем для работы с JSON
+import '../../database/database_helper.dart';
 
 class NewActivityScreen extends StatefulWidget {
   @override
@@ -15,16 +18,42 @@ class _NewActivityScreenState extends State<NewActivityScreen> {
   double _distanceTraveled = 0.0; // Distance traveled in kilometers
   Duration _timeElapsed = Duration.zero; // Time elapsed
 
+  final DatabaseHelper _databaseHelper = DatabaseHelper();
+
   @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
   }
 
-  void _startActivity() {
+  void _startActivity() async {
     setState(() {
       _isActivityStarted = true;
-      // Здесь можно добавить логику для начала отслеживания активности
+    });
+
+    // Генерация случайных данных
+    final startTime = DateTime.now().toIso8601String();
+    final endTime = DateTime.now().add(Duration(hours: 1)).toIso8601String();
+    final coordinates = [
+      {
+        'lat': 55.7558 + Random().nextDouble() / 100,
+        'lon': 37.6176 + Random().nextDouble() / 100,
+      },
+      {
+        'lat': 55.7558 + Random().nextDouble() / 100,
+        'lon': 37.6176 + Random().nextDouble() / 100,
+      },
+    ];
+
+    // Сериализация координат в JSON
+    final coordinatesJson = jsonEncode(coordinates);
+
+    // Вставка данных в базу данных
+    await _databaseHelper.insertActivity({
+      'activity_type': _selectedActivity,
+      'start_time': startTime,
+      'end_time': endTime,
+      'coordinates': coordinatesJson, // Используем сериализованные координаты
     });
   }
 
