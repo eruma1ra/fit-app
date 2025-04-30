@@ -53,9 +53,8 @@ class _ActivityDetailsScreenState extends State<ActivityDetailsScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new),
           color: const Color(0xFF007AFF),
-          onPressed: () async {
-            await _saveActivity();
-            Navigator.of(context).pop(_currentActivity);
+          onPressed: () {
+            Navigator.of(context).pop();
           },
         ),
         title: Text(
@@ -95,6 +94,8 @@ class _ActivityDetailsScreenState extends State<ActivityDetailsScreen> {
                   _buildActivityTypeRow(),
                   const SizedBox(height: 24),
                   _buildCommentField(),
+                  const SizedBox(height: 20),
+                  _buildSubmitButton(), // Добавлена кнопка "Отправить"
                 ],
               ),
             ),
@@ -189,6 +190,38 @@ class _ActivityDetailsScreenState extends State<ActivityDetailsScreen> {
       onChanged: (value) {
         _currentActivity['comment'] = value;
       },
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: () async {
+          await _saveActivity();
+          if (widget.onActivityUpdated != null) {
+            widget.onActivityUpdated!(_currentActivity);
+          }
+          Navigator.of(context).pop();
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Color(
+            0xFF007AFF,
+          ), // Используйте backgroundColor вместо primary
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+        child: const Text(
+          'Отправить',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+      ),
     );
   }
 

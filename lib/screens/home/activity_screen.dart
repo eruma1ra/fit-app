@@ -34,6 +34,20 @@ class _ActivityScreenState extends State<ActivityScreen> {
     });
   }
 
+  void _handleActivityUpdated(Map<String, dynamic> updatedActivity) {
+    setState(() {
+      _myActivities =
+          _myActivities
+              .map(
+                (activity) =>
+                    activity['id'] == updatedActivity['id']
+                        ? updatedActivity
+                        : activity,
+              )
+              .toList();
+    });
+  }
+
   List<Map<String, dynamic>> _groupActivities(
     List<Map<String, dynamic>> activities,
   ) {
@@ -175,13 +189,20 @@ class _ActivityScreenState extends State<ActivityScreen> {
           );
         } else {
           return GestureDetector(
-            onTap: () {
-              Navigator.push(
+            onTap: () async {
+              final updatedActivity = await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ActivityDetailsScreen(activity: item),
+                  builder:
+                      (context) => ActivityDetailsScreen(
+                        activity: item,
+                        onActivityUpdated: _handleActivityUpdated,
+                      ),
                 ),
               );
+              if (updatedActivity != null) {
+                _handleActivityUpdated(updatedActivity);
+              }
             },
             child: Container(
               width: double.infinity,
